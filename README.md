@@ -2,6 +2,7 @@
 
 > 作者：[程序员鱼皮](https://github.com/liyupi)
 > 仅分享于 [编程导航知识星球](https://yupi.icu)
+> remark: 本项目仅供学习交流使用，请勿用于商业用途，否则后果自负
 
 基于 Java SpringBoot 的项目初始模板，整合了常用框架和主流业务的示例代码。
 
