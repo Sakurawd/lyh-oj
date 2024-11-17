@@ -1,0 +1,32 @@
+package com.yupi.lyhoj.model.dto.post;
+
+import java.io.Serializable;
+import java.util.List;
+import lombok.Data;
+
+/**
+ * 创建请求
+ *
+ * @author <a href="https://github.com/liyupi">程序员鱼皮</a>
+ * @from <a href="https://yupi.icu">编程导航git remote add origin https://github.com/Sakurawd/lyh-oj.git知识星球</a>
+ */
+@Data
+public class PostAddRequest implements Serializable {
+
+    /**
+     * 标题
+     */
+    private String title;
+
+    /**
+     * 内容
+     */
+    private String content;
+
+    /**
+     * 标签列表
+     */
+    private List<String> tags;
+
+    private static final long serialVersionUID = 1L;
+}
