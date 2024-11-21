@@ -1,11 +1,17 @@
 package com.yupi.lyhoj.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.yupi.lyhoj.annotation.AuthCheck;
 import com.yupi.lyhoj.common.BaseResponse;
 import com.yupi.lyhoj.common.ErrorCode;
 import com.yupi.lyhoj.common.ResultUtils;
+import com.yupi.lyhoj.constant.UserConstant;
 import com.yupi.lyhoj.exception.BusinessException;
-import com.yupi.lyhoj.model.dto.postthumb.QuestionSubmitAddRequest;
+import com.yupi.lyhoj.model.dto.questionsubmit.QuestionSubmitAddRequest;
+import com.yupi.lyhoj.model.dto.questionsubmit.QuestionSubmitQueryRequest;
+import com.yupi.lyhoj.model.entity.QuestionSubmit;
 import com.yupi.lyhoj.model.entity.User;
+import com.yupi.lyhoj.model.vo.QuestionSubmitVO;
 import com.yupi.lyhoj.service.QuestionSubmitService;
 import com.yupi.lyhoj.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -39,19 +45,36 @@ public class QuestionSubmitController {
      *
      * @param questionSubmitAddRequest
      * @param request
-     * @return resultNum 本次点赞变化数
+     * @return resultNum 提交记录的ID
      */
     @PostMapping("/")
-    public BaseResponse<Integer> doThumb(@RequestBody QuestionSubmitAddRequest questionSubmitAddRequest,
+    public BaseResponse<Long> doQuestionSubmit(@RequestBody QuestionSubmitAddRequest questionSubmitAddRequest,
             HttpServletRequest request) {
-        if (questionSubmitAddRequest == null || questionSubmitAddRequest.getPostId() <= 0) {
+        if (questionSubmitAddRequest == null || questionSubmitAddRequest.getQuestionId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         // 登录才能点赞
         final User loginUser = userService.getLoginUser(request);
-        long postId = questionSubmitAddRequest.getPostId();
-        int result = questionSubmitService.doQuestionSubmit(postId, loginUser);
-        return ResultUtils.success(result);
+        Long questionSubmitId = questionSubmitService.doQuestionSubmit(questionSubmitAddRequest, loginUser);
+        return ResultUtils.success(questionSubmitId);
+    }
+    /**
+     * 分页获取题目提交列表（管理员可看到其他人的答案 普通用户只能看到自己的答案和别人的非答案，提交的代码等公开信息）
+     *
+     * @param questionSubmitQueryRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/list/page")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Page<QuestionSubmitVO>> listQuestionSubmitByPage(@RequestBody QuestionSubmitQueryRequest questionSubmitQueryRequest,
+                                                                         HttpServletRequest request) {
+        long current = questionSubmitQueryRequest.getCurrent();
+        long size = questionSubmitQueryRequest.getPageSize();
+        Page<QuestionSubmit> questionSubmitPage = questionSubmitService.page(new Page<>(current, size),
+                questionSubmitService.getQueryWrapper(questionSubmitQueryRequest));
+        final User loginUser = userService.getLoginUser(request);
+        return ResultUtils.success(questionSubmitService.getQuestionSubmitVOPage(questionSubmitPage, loginUser));
     }
 
 }

@@ -29,5 +29,20 @@ public class QuestionAddRequest implements Serializable {
      */
     private List<String> tags;
 
+    /**
+     * 题目答案
+     */
+    private String answer;
+
+    /**
+     * 判题用例
+     */
+    private List<JudgeCase> judgeCase;
+
+    /**
+     * 判题配置
+     */
+    private JudgeConfig judgeConfig;
+
     private static final long serialVersionUID = 1L;
 }
