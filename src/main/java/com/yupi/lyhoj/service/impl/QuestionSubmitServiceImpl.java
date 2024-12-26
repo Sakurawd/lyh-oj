@@ -7,6 +7,7 @@ import com.github.xiaoymin.knife4j.core.util.CollectionUtils;
 import com.yupi.lyhoj.common.ErrorCode;
 import com.yupi.lyhoj.constant.CommonConstant;
 import com.yupi.lyhoj.exception.BusinessException;
+import com.yupi.lyhoj.judge.JudgeService;
 import com.yupi.lyhoj.mapper.QuestionSubmitMapper;
 import com.yupi.lyhoj.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.yupi.lyhoj.model.dto.questionsubmit.QuestionSubmitQueryRequest;
@@ -23,10 +24,12 @@ import com.yupi.lyhoj.service.UserService;
 import com.yupi.lyhoj.utils.SqlUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
@@ -43,6 +46,10 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
 
     @Resource
     private UserService userService;
+
+    @Resource
+    @Lazy
+    private JudgeService judgeService;
 
     /**
      * 题目提交
@@ -81,12 +88,12 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         if (!save) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "数据插入失败");
         }
-        return questionSubmit.getId();
-        // 锁必须要包裹住事务方法
-//        QuestionSubmitService questionSubmitService = (QuestionSubmitService) AopContext.currentProxy();
-//        synchronized (String.valueOf(userId).intern()) {
-//            return questionSubmitService.doQuestionSubmitInner(userId, questionId);
-//        }
+        // 执行判题服务
+        Long questionSubmitId = questionSubmit.getId();
+        CompletableFuture.runAsync(() -> {
+            judgeService.doJudge(questionSubmitId);
+        });
+        return questionSubmitId;
     }
 
     /**
